@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Classificação de produtos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --ink:#17201D; --muted:#5B6863; --line:#D6DCD8; --soft:#E8ECE9; --mark:#FFE58A;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141a18; --surface:#1d2522; --ink:#E9EEEB; --muted:#9AA6A1; --line:#33403b; --soft:#26302c; --mark:#7a6416;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141a18; --surface:#1d2522; --ink:#E9EEEB; --muted:#9AA6A1; --line:#33403b; --soft:#26302c; --mark:#7a6416;
+  color-scheme:dark;
+}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 90px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.cond{font-family:"Barlow Condensed","Arial Narrow",sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+header.top{padding-top:36px;padding-bottom:20px}
+.top h1{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:clamp(2.1rem,5vw,3.4rem);line-height:1;margin:0 0 12px;letter-spacing:-.01em}
+.levels{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;color:var(--muted);font-size:1rem}
+.levels b{color:var(--ink);font-weight:600}
+.lv{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
+.lv i{font-style:normal;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.05rem;color:var(--ink)}
+.sep{color:var(--muted)}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1 1 320px;position:relative}
+.search input{width:100%;font:inherit;font-size:1.05rem;padding:12px 40px 12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.search input:focus{outline:none;border-color:var(--ink)}
+.search button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px 8px;display:none}
+.search.has button{display:block}
+.btn{font:inherit;font-weight:600;padding:11px 16px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+:focus-visible{outline:3px solid #2F7FA8;outline-offset:2px}
+
+/* placas de departamento */
+.signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:22px 0 8px}
+.sign{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:10px solid var(--c);border-radius:8px;padding:12px 14px;min-height:78px}
+.sign:hover{border-color:var(--c);border-left-color:var(--c)}
+.sign:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.sign .num{grid-row:1 / span 2;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:2.4rem;line-height:1;color:var(--c);min-width:2ch}
+.sign .nm{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.25rem;line-height:1.05}
+.sign .ct{font-size:.85rem;color:var(--muted)}
+.sign[aria-current="true"]{background:var(--c);color:#fff;border-color:var(--c)}
+.sign[aria-current="true"] .num,.sign[aria-current="true"] .ct{color:#fff}
+.signs.dim .sign{opacity:.45}
+.signs.dim .sign.hit{opacity:1}
+
+/* detalhe */
+main{padding:18px 0 60px}
+.dept{margin:0 0 40px}
+.dhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;background:var(--c);color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:16px}
+.dhead .num{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:2.6rem;line-height:1}
+.dhead h2{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:2rem;line-height:1;margin:0}
+.dhead .ct{margin-left:auto;font-size:.95rem;opacity:.92}
+.groups{columns:290px;column-gap:14px}
+.group{break-inside:avoid;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:8px;margin:0 0 14px;padding:12px 14px 8px}
+.ghead{display:flex;gap:10px;align-items:baseline;margin:0 0 6px}
+.ghead .gc{font-family:"Barlow Condensed",sans-serif;font-weight:700;color:var(--c);font-size:1.15rem}
+.ghead h3{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:1.25rem;margin:0;line-height:1.1}
+.ghead .gn{margin-left:auto;font-size:.8rem;color:var(--muted);white-space:nowrap}
+.group ul{list-style:none;margin:0;padding:0}
+.group li{display:flex;gap:10px;padding:5px 0;border-top:1px solid var(--soft);font-size:.95rem}
+.group li:first-child{border-top:0}
+.group li .sc{font-family:"Barlow Condensed",sans-serif;font-weight:600;color:var(--muted);min-width:3.2em}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+.path{font-size:.8rem;color:var(--muted);margin:-2px 0 6px}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:8px;padding:28px;text-align:center;color:var(--muted)}
+.empty b{color:var(--ink)}
+.hint{color:var(--muted);font-size:.95rem;margin:4px 0 14px}
+footer{color:var(--muted);font-size:.85rem;padding-top:20px;padding-bottom:40px;border-top:1px solid var(--line)}
+
+@media (max-width:560px){
+  .signs{grid-template-columns:1fr 1fr}
+  .sign{padding:10px;border-left-width:7px;min-height:70px}
+  .sign .num{font-size:1.8rem}
+  .sign .nm{font-size:1.05rem}
+  .dhead .ct{margin-left:0;width:100%}
+  .bar .btn{flex:1}
+}
+@media print{
+  .bar,.signs,.hint,footer .noprint{display:none!important}
+  body{background:#fff;color:#000}
+  .group{border-color:#bbb}
+  .dept{break-before:page}
+  .dept:first-child{break-before:auto}
+  .dhead{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (prefers-reduced-motion:no-preference){
+  .sign{transition:background-color .15s,opacity .15s}
+}
+</style>
+</head>
+<body>
+<header class="top wrap">
+  <h1>Como os produtos estão classificados</h1>
+  <p class="levels">
+    <span class="lv"><i id="tD">10</i> departamentos</span><span class="sep">›</span>
+    <span class="lv"><i id="tG">72</i> grupos</span><span class="sep">›</span>
+    <span class="lv"><i id="tS">563</i> subgrupos</span>
+  </p>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="search" id="sbox">
+      <input id="q" type="text" enterkeyhint="search" placeholder="Buscar: azeite, fralda, linguiça…" autocomplete="off" aria-label="Buscar na classificação">
+      <button type="button" id="clr" aria-label="Limpar busca">×</button>
+    </div>
+    <button class="btn" id="all" aria-pressed="false">Ver tudo</button>
+    <button class="btn" id="prt">Imprimir</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="signs" id="signs" aria-label="Departamentos"></nav>
+  <p class="hint" id="hint">Toque em um departamento para ver seus grupos e subgrupos.</p>
+</div>
+
+<main class="wrap" id="out" aria-live="polite"></main>
+
+<footer class="wrap">Classificação padrão de cadastro — TGMAQ</footer>
+
+<script>
+const DATA = [{"c":"10","n":"MERCEARIA","g":[{"c":"100","n":"ARROZ","s":[["1000","ARROZ BRANCO 1KG"],["1001","ARROZ BRANCO 2KG"],["1002","ARROZ BRANCO 5KG"],["1003","ARROZ PARBOILIZADO 1KG"],["1004","ARROZ PARBOILIZADO 2KG"],["1005","ARROZ PARBOILIZADO 5KG"],["1006","ARROZ ESPECIAL"]]},{"c":"101","n":"FEIJAO","s":[["1007","FEIJAO PRETO"],["1008","FEIJAO CARIOCA"],["1009","FEIJAO ESPECIAL"]]},{"c":"102","n":"ACUCAR","s":[["1010","ACUCAR CRISTAL 1KG"],["1011","ACUCAR CRISTAL 2KG"],["1012","ACUCAR CRISTAL 5KG"],["1013","ACUCAR REFINADO 1KG"],["1014","ACUCAR REFINADO 5KG"],["1015","ACUCAR ESPECIAL"]]},{"c":"103","n":"FARINACEOS","s":[["1016","FARINHA DE TRIGO 1KG"],["1017","FARINHA DE TRIGO 5KG"],["1018","FARINHA DE TRIGO INTEGRAL/ARROZ"],["1019","FARINHA MANDIOCA/BIJU"],["1020","FARINHA MILHO/FLOCAO"],["1021","FARINHA ROSCA/EMPANAR"],["1022","FARINHA DE CENTEIO"],["1023","TRIGO QUIBE"],["1024","FAROFA PRONTA"],["1025","FUBA/POLENTA"]]},{"c":"104","n":"CEREAIS","s":[["1026","MILHO PIPOCA"],["1027","PIPOCA MICROONDAS"],["1028","CANJICA"],["1029","AMENDOIM"],["1030","QUIRERA/MILHO GRAO/CAROLO"],["1031","ERVILHA"],["1032","LENTILHA"],["1033","GRAO DE BICO"],["1034","SAGU"],["1035","CUZCUZ"],["1036","TAPIOCA"],["1037","POLVILHO"]]},{"c":"105","n":"SAL","s":[["1038","SAL REFINADO"],["1039","SAL GROSSO"],["1040","SAL ESPECIAL"]]},{"c":"106","n":"MASSAS","s":[["1041","MACARRAO COM OVOS"],["1042","MACARRAO SEMOLA"],["1043","MACARRAO INSTANTANEO"],["1044","MASSA LASANHA"],["1045","SOPAS E CALDOS"],["1046","OUTRAS MASSAS"]]},{"c":"107","n":"OLEOS E AZEITES","s":[["1047","AZEITE DE OLIVA"],["1048","OLEO COMPOSTO"],["1049","OLEO DE SOJA"],["1050","OLEOS ESPECIAIS"]]},{"c":"108","n":"TEMPEROS","s":[["1051","VINAGRES/ACETATO"],["1052","ALHO TRITURADO"],["1053","TEMPEROS PRONTOS POTES/AMACIANTE"],["1054","TEMPEROS PRONTOS SACHES"],["1055","CALDOS TABLETE/EM PO"],["1056","OUTROS CONDIMENTOS/ESPECIARIAS"]]},{"c":"109","n":"MOLHOS","s":[["1057","EXTRATO DE TOMATE"],["1058","POLPA DE TOMATE"],["1059","MOLHO DE TOMATE PRONTO"],["1060","MOLHO DE PIMENTA"],["1061","MOLHO SHOYO"],["1062","MOLHO PARA SALADA"],["1063","CATCHUP"],["1064","MAIONESE"],["1065","MOSTARDA"],["1066","BARBECUE"],["1067","MOLHOS ESPECIAIS"]]},{"c":"110","n":"CONSERVAS","s":[["1068","AZEITONAS"],["1069","PALMITO EM CONSERVA"],["1070","PEPINO EM CONSERVA"],["1071","CEBOLAS EM CONSERVA"],["1072","ARPARGOS"],["1073","CHAMPIGNON/COGUMELOS"],["1074","OVOS CODORNA EM CONSERVA"],["1075","PICLES EM CONSERVA"],["1076","LEGUMES EM CONSERVA"],["1077","ERVILHA LATA/SACHE"],["1078","MILHO LATA/SACHE"],["1079","SELETA"],["1080","FEIJOADA PRONTA"],["1081","SARDINHA"],["1082","ATUM LATA"],["1083","PATES ENLATADOS"],["1084","PRATOS PRONTOS ENLATADOS/VAPOR"],["1085","ALCACHOFRAS/ALCAPARRAS"],["1086","ABACAXI EM CALDA"],["1087","CEREJA EM CALDA"],["1088","PESSEGO EM CALDA"],["1089","FIGO EM CALDA"],["1090","MORANGO EM CALDA"]]},{"c":"111","n":"BISCOITOS","s":[["1091","BISCOITO RECHEADO"],["1092","BISCOITO DOCE"],["1093","BISCOITO SALGADO"],["1094","BISCOITO WAFFER"],["1095","BOLACHAS"],["1096","COOKIES"]]},{"c":"112","n":"DOCES","s":[["1097","DOCE DE FRUTAS"],["1098","DOCE DE LEITE"],["1099","GELEIA"],["1100","CREME DE AVELA"]]},{"c":"113","n":"CULINARIA/SOBREMESA","s":[["1101","CREME DE LEITE"],["1102","LEITE CONDENSADO"],["1103","PO PARA CHANTILLY"],["1104","PO PARA GELATINA"],["1105","PO PARA MARIA MOLE"],["1106","PO PARA PUDIM"],["1107","PO PARA FLAN"],["1108","PO PARA SORVETE"],["1109","CHOCOLATE EM PO"],["1110","MISTURA PARA BOLO"],["1111","MISTURA PARA SAGU"],["1112","COCO RALADO"],["1113","GRANULADO"],["1114","FRUTAS SECAS"],["1115","FRUTAS CRISTALIZADAS"],["1116","AMIDO DE MILHO"],["1117","FERMENTO QUIMICO PO"],["1118","FERMENTO BIOLOGICO"],["1119","ESSENCIAS/AROMATIZANTES CULINARIO"],["1120","MEL/MELADO/PROPOLIS"],["1171","LEITE DE COCO"]]},{"c":"114","n":"MATINAIS","s":[["1121","CEREAIS MATINAIS E GRANOLA"],["1122","ACHOCOLATADO EM PO"],["1123","PREPARO LACTEO MORANGO"],["1124","CAFES"],["1125","CAFE SOLUVEL/CAPSULAS"],["1126","CAPUCCINO"],["1127","CHA"],["1128","ERVA MATE/TERERE"],["1129","CEVADA"]]},{"c":"115","n":"LEITES","s":[["1130","LEITE INTEGRAL TP"],["1131","LEITE DESNATADO/SEMI TP"],["1132","LEITE ZERO LACTOSE TP"],["1133","LEITE DE AVEIA TP"],["1134","LEITE DE SOJA TP"],["1135","LEITE PO INTEGRAL"],["1136","LEITE PO DESNATADO"],["1137","LEITE PO ZERO LACTOSE"]]},{"c":"116","n":"ALIMENTOS INFANTIS","s":[["1138","LEITE PO INFANTIL"],["1139","MINGAU"],["1140","COMPLEMENTO ALIMENTAR INFANTIL"],["1141","PAPINHAS"]]},{"c":"117","n":"LIGHT/DIET/FIT","s":[["1142","ADOCANTE"],["1143","ACUCAR LIGHT"],["1144","CHOCOLATE BARRA LIGHT/DIET"],["1145","BARRA CEREAL"],["1146","CHOCOLATE PO AMARGO/CACAU PO"],["1147","FARINHA DE AVEIA"],["1148","AVEIA EM FLOCOS"],["1149","PO PARA PUDIM LIGHT/DIET"],["1150","PASTA DE AMENDOIM"],["1151","PO PARA GELATINA LIGHT/DIET"],["1152","BISCOITO LIGHT/DIET"],["1153","BOLO LIGHT/DIET"]]},{"c":"118","n":"CHOCOLATES E DOCES","s":[["1154","CHOCOLATE BARRA"],["1155","BOMBOM"],["1156","OVOS DE PASCOA"],["1157","PIPOCA DOCE"],["1158","CONFEITOS"],["1159","TORRONE"],["1160","BALAS"],["1161","FONDANT E DOCE DE LEITE"],["1162","PASTILHAS"],["1163","CHICLETS"],["1164","DOCE AMENDOIM/PACOCA"],["1165","SUSPIRO"],["1175","MARSHMALLOWS"]]},{"c":"119","n":"SALGADINHOS E SNACKS","s":[["1166","SALGADINHOS CHIPS"],["1167","AMENDOIM SALGADO"],["1168","BATATA PALHA"],["1169","BATATA LISA/ONDULADA"],["1170","PURURUCA/TORRESMO"],["1172","SNACKS"],["1174","BISCOITO POLVILHO"]]}]},{"c":"20","n":"ACOUGUE","g":[{"c":"200","n":"CARNES BOVINAS","s":[["2000","CORTES BOVINOS COM OSSO"],["2001","CORTES BOVINOS SEM OSSO"],["2002","CORTES ESPECIAIS"],["2003","CARNE BOVINA TEMPERADA"],["2004","MIUDOS BOVINO"],["2005","CORTES BOVINOS PARA FRACIONAR"]]},{"c":"201","n":"CARNE SUINA","s":[["2006","CORTES SUINOS"],["2007","CORTES SUINOS TEMPERADO"],["2008","CORTES SUINOS ESPECIAIS"],["2009","MIUDOS SUINOS"],["2010","CORTES SUINOS PARA FRACIONAR"]]},{"c":"202","n":"CARNE AVES","s":[["2011","FRANGO INTEIRO"],["2012","CORTES DE FRANGO"],["2013","CORTES DE FRANGO TEMPERADO"],["2014","CORTES DE FRANGO ESPECIAIS"],["2015","MIUDOS DE FRANGO"],["2016","FRANGO ASSADO"],["2029","AVE NATALINA"]]},{"c":"203","n":"CARNES ESPECIAIS","s":[["2017","PRATOS PRONTOS ACOUGUE"],["2018","CARNES EXOTICAS"],["2019","CARNE CARNEIRO"],["2020","PEIXES E FRUTOS DO MAR"]]},{"c":"204","n":"LINGUICAS E DEFUMADOS","s":[["2021","LINGUICA TOSCANA"],["2022","LINGUICA PERNIL"],["2023","LINGUICA DE FRANGO"],["2024","LINQUICA TC FINA"],["2025","LINGUICA ESPECIAL CONDIMENTADA"],["2026","BACON"],["2027","CORTES SUINOS SALGADO"],["2028","SALSICHA GRANEL"]]}]},{"c":"30","n":"HORTIFRUTI","g":[{"c":"300","n":"FRUTAS","s":[["3000","FRUTAS FRESCAS"],["3001","FRUTAS EMBALADAS"]]},{"c":"301","n":"LEGUMES","s":[["3002","LEGUMES DE RAIZ E TURBECULO"],["3003","LEGUMES OUTROS"]]},{"c":"302","n":"VERDURAS","s":[["3004","VERDURAS FOLHOSAS"],["3005","TEMPEROS FRESCOS"],["3006","ORGANICOS"],["3007","ALHO A GRANEL E EMBALADO"]]},{"c":"303","n":"OVOS","s":[["3008","OVOS BRANCOS"],["3009","OVOS VERMELHOS"],["3010","OVOS DE CODORNA IN NATURA"]]}]},{"c":"40","n":"FABRICACAO PROPRIA","g":[{"c":"400","n":"CONFEITARIA","s":[["4000","BOLO SIMPLES"],["4001","BOLO RECHEADO/ COM COBERTURA"],["4002","TORTAS DOCES"],["4003","DOCES E SOBREMESAS"],["4015","FOLHADOS DOCE"]]},{"c":"401","n":"PADARIA","s":[["4004","PAES TRADICIONAIS"],["4005","PAES ESPECIAIS"],["4006","SALGADOS ASSADOS"],["4007","SALGADOS FRITOS"],["4011","BROAS"],["4012","PAES DOCES E RECHEADOS"],["4013","SANDUICHES PRONTO"],["4014","TORTAS SALGADAS"]]},{"c":"402","n":"PRODUTOS SAZIONAIS","s":[["4008","NATALINOS"],["4009","PASCOA"],["4010","FESTA JUNINA"]]},{"c":"403","n":"PRODUTOS PRODUCAO","s":[["4016","PRODUTOS PARA PRODUCAO"]]}]},{"c":"50","n":"PERECIVEIS","g":[{"c":"500","n":"LATICINIOS E GORDURAS","s":[["5000","BEBIDA LACTEA"],["5001","IOGURTE"],["5002","PETIT SUISSE"],["5003","SOBREMESA LACTEA"],["5004","LEITE FERMENTADO"],["5005","LEITE PASTEIRIZADO(SAQUINHO)"],["5006","CREME DE LEITE FRESCO/NATA"],["5007","ACHOCOLATADO PRONTO"],["5008","REQUEIJAO"],["5009","QUEIJO FATIADO"],["5010","QUEIJO PECA/PEDACO"],["5011","QUEIJO ESPECIAL/DEFUMADO/PROCESSADO"],["5012","MANTEIGA"],["5013","MARGARINA/CREME VEGETAL"],["5072","GORDURA VEGETAL/BANHA"]]},{"c":"501","n":"FIAMBRERIA","s":[["5014","APRESUNTADO"],["5015","PRESUNTO"],["5016","MORTADELA"],["5017","PEITO DE PERU DEFUMADO"]]},{"c":"502","n":"EMBUTIDOS E DEFUMADOS","s":[["5018","LINGUICA DEFUMADA"],["5019","LINGUICA CALABRESA"],["5020","SALSICHAS A VACUO"],["5021","SALAME"],["5022","PATE"],["5023","SALSICHAO"],["5024","INGREDIENTES FEIJOADA"],["5025","CHARQUES"]]},{"c":"503","n":"CONGELADOS","s":[["5026","PIZZA PRONTA CONGELADA"],["5027","SANDUICHE PRONTO CONGELADO"],["5028","EMPANADO"],["5029","HAMBURGUER"],["5030","TORTA/SOBREMESA PRONTA CONGELADA"],["5031","PAO DE QUEIJO CONGELADO"],["5032","POLPA DE FRUTAS/FRUTA CONGELADA"],["5033","SORVETE/ACAI"],["5034","PICOLE"],["5035","PRATOS PRONTOS CONGELADOS"],["5036","SALGADOS PRONTOS CONGELADOS"],["5037","CORTES DE AVES CONGELADAS EMB"],["5038","CORTES BOVINOS CONGELADOS EMB"],["5039","CORTES SUINOS CONGELADOS EMB"],["5040","VEGETAIS CONGELADOS"],["5071","BATATA FRITA CONGELADA"]]},{"c":"504","n":"PEIXARIA","s":[["5041","FILE DE PEIXE"],["5042","FRUTOS DO MAR"],["5043","EMPANADOS DE PEIXE"],["5044","PEIXE INTEIRO"],["5045","POSTA DE PEIXE"]]},{"c":"505","n":"MASSAS FRESCAS","s":[["5046","MASSA PASTEL"],["5047","MASSA LASANHA FRESCA"],["5048","MASSA PIZZA FRESCA"],["5049","CAPELETTI"],["5050","ESPAGUETI FRESCO"],["5051","TALHARIM FRESCO"],["5052","RAVIOLI FRESCO"],["5053","NHOQUE FRESCO"],["5054","FETUTINE FRESCO"]]},{"c":"506","n":"PADARIA INDUSTRIALIZADA","s":[["5055","PAO FATIADO IND"],["5056","PAO CASEIRO IND"],["5057","PAO BISNAGUINHA/SOVADO"],["5058","PAO HAMBURGUER/HOTDOG"],["5059","PAO INTEGRAL/LIGHT IND"],["5060","TORRADA IND"],["5061","PAO DE ALHO IND"],["5062","MASSA PIZZA IND"],["5063","BOLOS PRONTOS IND"],["5064","PANETONE DE CHOCOLATE"],["5065","PANETONE DE FRUTAS"],["5066","COLOMBA PASCOAL IND"],["5067","CANUDOS PARA RECHEAR"],["5068","PAO DE MEL IND"],["5069","PAO SIRIO IND"],["5070","MASSA TORTILHA IND"]]}]},{"c":"60","n":"BEBIDAS","g":[{"c":"600","n":"BEBIDAS DESTILADAS","s":[["6000","AGUARDENTE"],["6001","BATIDAS"],["6002","CACHACA"],["6003","APERITIVOS"],["6004","CHAMPAGNE"],["6005","ESPUMANTE"],["6006","SIDRA"],["6007","LICOR"],["6008","CONHAQUES"],["6009","VERMOUTH"],["6010","VODKA"],["6011","RUM"],["6012","GIN"],["6013","SAQUE"],["6014","TEQUILA"],["6015","WHISKY IMPORTADO"],["6016","WHISKY NACIONAL"],["6041","BEBIDA MISTA"]]},{"c":"601","n":"VINHOS","s":[["6017","VINHO NACIONAL"],["6018","VINHO IMPORTADO"],["6019","COOLER DE VINHO"],["6020","CHOPP DE VINHO"]]},{"c":"602","n":"CERVEJAS","s":[["6021","CERVEJA LONGNECK"],["6022","CERVEJA LATA"],["6023","CERVEJA GARRAFA RETORNAVEL"],["6024","CHOPP"]]},{"c":"603","n":"BEBIDAS NAO ALCOOLICA","s":[["6025","AGUA MINERAL"],["6026","AGUA DE COCO"],["6027","SUCO CONCENTRADO"],["6028","SUCO PRONTO/INTEGRAL"],["6029","SUCO PRONTO DE SOJA/AMENDOAS"],["6030","ENERGETICO"],["6031","ISOTONICO"],["6032","XAROPE"],["6033","REFRESCO EM PO"],["6034","CHA PRONTO"],["6042","TONICA"],["6043","ESPUMANTE SEM ALCOOL"]]},{"c":"604","n":"REFRIGERANTES","s":[["6035","REFRIGERANTE PET"],["6036","REFRIGERANTE LATA"],["6037","REFRIGERANTE RETORNAVEL"]]},{"c":"605","n":"VASILHAME","s":[["6038","VASILHAME AGUA"],["6039","VASILHAME CERVEJA"],["6040","VASILHAME REFRIGERANTE"]]}]},{"c":"70","n":"LIMPEZA","g":[{"c":"700","n":"LAVANDERIA","s":[["7000","LAVA ROUPAS EM PO"],["7001","LAVA ROUPAS LIQUIDO"],["7002","SABAO BARRA"],["7003","AMACIANTE DE ROUPAS"],["7004","AGUA SANITARIA"],["7005","ALVEJANTE E CLORO"],["7006","TIRA MANCHAS"],["7007","GOMA PARA ROUPAS"],["7008","CORANTES"],["7009","PRODUTOS PARA PASSAR ROUPAS"],["7010","ANTI-MOFO"]]},{"c":"701","n":"LIMPEZA PESADA","s":[["7011","REMOVEDORES"],["7012","QUEROSENE"],["7013","SODA CAUSTICA"],["7014","DESINFETANTES"],["7015","LAVA LOUCAS"],["7016","LAVA LOUCAS GEL"],["7017","DESENGORDURANTE"],["7018","LIMPA FORNO"],["7019","DESENTUPIDORES"],["7020","SAPONACEOS"],["7021","ALCOOL"],["7022","MULTIUSO"],["7023","CERA PARA CASA"],["7024","LIMPADOR"],["7025","LIMPA VIDRO"],["7026","LUSTRA MOVEIS"],["7027","LUSTRA METAIS"],["7028","AROMATIZANTES"],["7029","ODORIZADORES"],["7030","TIRA LIMO"],["7031","OLEOS PARA LIMPEZA"],["7032","PEDRA SANITARIA/GEL"]]},{"c":"702","n":"ACESSORIOS PARA LIMPEZA","s":[["7033","CORDAS DE VARAL"],["7034","RODO"],["7035","VASSOURA"],["7036","PA DE LIXO"],["7037","ESCOVA DE ROUPAS"],["7038","TABUA DE PASSAR"],["7039","TABUA DE LAVAR"],["7040","PRENDEDOR DE ROUPAS"],["7041","ESCOVA DE LIMPEZA GERAL"],["7042","LUVA LATEX"],["7043","SACO PARA LIXO"],["7044","FLANELAS E PANOS DE LIMPEZA"],["7045","FILTRO EXAUSTOR"],["7046","FILTRO ASPIRADOR DE PO"],["7047","ESPANADOR"],["7048","ESPONJA DE LOUCA/MULTIUSO"],["7049","ESPONJA DE ACO"],["7050","ESCOVA SANITARIA"]]}]},{"c":"80","n":"PERFUMARIA","g":[{"c":"800","n":"CAPILARES","s":[["8000","SHAMPOO"],["8001","CONDICIONADOR"],["8002","CREME HIDRATANTE CAPILAR"],["8003","CREME PENTEAR/LEAVE IN"],["8004","TONICOS CAPILARES"],["8005","GEL E FIXADORES PARA CABELO"],["8006","TINTURA CABELO E DESCOLORANTES"],["8007","AGUA OXIGENADA"],["8045","ESCOVA DE CABELO"],["8046","ACESSORIOS DE CABELO"]]},{"c":"801","n":"HIGIENE PESSOAL","s":[["8008","TALCOS"],["8009","SABONETES"],["8010","DESODORANTES/ANTITRANSPIRANTES"],["8011","ENXAGUE BUCAL"],["8012","CREME DENTAL/GEL DENTAL"],["8013","ABSORVENTE"],["8014","PAPEL HIGIENICO"],["8015","FIO DENTAL"],["8016","ESCOVA DENTAL"],["8017","ESPONJA DE BANHO"],["8018","LENCOS UMIDECIDOS"],["8019","LENCO DE PAPEL"],["8020","HASTES FLEXIVEIS"],["8021","HIDRATANTE CORPORAL/ROSTO"],["8022","OLEO CORPORAL"],["8023","SABONETE LIQUIDO"],["8024","REPELENTE CORPORAL"],["8025","APARELHO BARBEAR/DEPITAR"],["8026","ACESSORIOS BARBEAR"],["8027","CREME DE BARBEAR"],["8028","PROTETOR SOLAR"],["8029","AGUA MICELAR"],["8030","PRESERVATIVO"],["8041","ALGODAO"],["8042","ANTI SEPTICO PARA SAPATO"],["8044","MAQUIAGENS"],["8047","FRALDA GERIATRICA"],["8048","CERAS E CREMES PARA DEPILAR"],["8049","CURATIVOS"]]},{"c":"802","n":"PRODUTOS MANICURE","s":[["8031","ESMALTES"],["8032","ACETONA"],["8033","ACESSORIOS MANICURE"]]},{"c":"803","n":"HIGIENE BEBE","s":[["8034","SHAMPOO PARA BEBE"],["8035","CONDICIONADOR BEBE"],["8036","HIDRATANTE BEBE"],["8037","OLEO BEBE"],["8038","FRALDAS DESCARTAVEIS"],["8039","LENCOS UMIDECIDOS BEBE"],["8040","SABONETES BARRA/LIQUIDO BEBE"],["8043","TALCO PARA BEBES"]]}]},{"c":"90","n":"BAZAR","g":[{"c":"900","n":"PETSHOP","s":[["9000","RACAO PARA CAES"],["9001","RACAO PARA GATOS"],["9002","ARROZ PARA CAES"],["9003","ACESSORIOS PARA CAES E GATOS"],["9004","ALIMENTOS PARA PASSAROS"],["9005","SHAMPOO PARA CAES E GATOS"],["9006","CONDICIONADOR CAES E GATOS"],["9007","ELIMINA ODOR/EDUCADOR CAES E GATOS"],["9008","AREIA HIGIENICA E TAPETES"],["9009","PETISCOS/SACHES GATOS"],["9010","PETISCOS/SACHES CAES"]]},{"c":"901","n":"TABACARIA","s":[["9011","ISQUEIROS"],["9012","CIGARROS"],["9013","TABACO"]]},{"c":"902","n":"INSETICIDAS E VENENOS","s":[["9014","INSETICIDA"],["9016","REPELENTES"],["9017","VENENO"],["9018","APARELHOS E REFIS"]]},{"c":"903","n":"AUTOMOTIVOS","s":[["9120","ADITIVOS E FLUIDOS AUTOMATIVOS"]]},{"c":"904","n":"FERRAMENTARIA","s":[["9025","CHUVEIROS"],["9026","TORNEIRAS"],["9027","FERRAGENS"],["9028","FERRAMENTAS"],["9029","MATERIAL HIDRAULICO"],["9031","ARTIGIS RURAIS"],["9032","COLAS PARA MANUTENCAO"]]},{"c":"905","n":"UTENCILIOS DO LAR","s":[["9033","PANELAS DE ALUMINIO"],["9034","PANELA DE INOX"],["9035","COPOS/XICARAS/CANECAS"],["9036","ASSADEIRAS E FORMAS"],["9037","TALHERES"],["9038","FRIGIDEIRAS"],["9039","CHALEIRAS E BULES"],["9040","ARTIGOS DE CAMA"],["9041","TAPETES"],["9042","PRATOS COZINHA"],["9043","ARTIGOS DE BANHO"],["9044","LIXEIRA"],["9045","ESCORREDOR DE LOUCA"],["9046","FRUTEIRAS"],["9047","LAMPADAS"],["9048","MATERIAIS ELETRICOS"],["9049","ELETRODOMESTICOS E ELETRONICOS"],["9050","VELAS"],["9051","ESPETOS E GRELHAS"],["9052","UTENCILIOS DOMESTICOS"]]},{"c":"906","n":"ACESSORIOS DE CAFE","s":[["9053","FILTRO DE PAPEL"],["9054","COADOR CAFE"],["9055","SUPORTE PARA FILTRO DE CAFE"],["9056","GARRAFA TERMICA"]]},{"c":"907","n":"PLASTICOS","s":[["9057","BALDES"],["9058","BACIAS"],["9059","CABIDE"],["9060","RECIPIENTES DE PLASTICO"],["9061","UTENCILIOS PLASTICOS"]]},{"c":"908","n":"DESCARTAVEIS E FESTAS","s":[["9062","EMBALAGENS PLASTICAS DESCATAVEIS"],["9063","EMBALAGENS TERMICAS"],["9064","FILMES PVC"],["9065","GUARDANAPOS"],["9066","PAPEL ALUMINIO"],["9067","PAPEL LAMINADO"],["9068","PAPEL MANTEIGA"],["9069","COPOS DESCARTAVEIS"],["9070","PRATOS DESCARTAVEIS"],["9071","TALHERES DESCARTAVEIS"],["9072","VELAS DE ANIVERSARIO"],["9073","ACESSORIOS DE FESTA"],["9074","TOALHA DE PAPEL"]]},{"c":"909","n":"ENCARTELADOS","s":[["9075","ENCARTELADOS EM GERAL"],["9076","PILHAS E BATERIAS"],["9077","BIJUTERIAS E ACESSORIOS"]]},{"c":"910","n":"PAPELARIA","s":[["9079","LIVROS E REVISTAS"],["9080","MOCHILAS,PASTAS E FICHEIROS"],["9081","CADERNOS"],["9082","CANETAS/LAPIS"],["9083","OUTROS ACESSORIOS ESCOLARES"],["9119","COLA ESCOLAR"]]},{"c":"911","n":"CAMPING E PESCA","s":[["9084","LANTERNAS/LAMPIOES/LAMPARINAS"],["9085","LENHA"],["9086","CARVAO"],["9087","ARTIGOS DE PESCA"],["9088","BARRACAS/MESAS/CADEIRAS PLAST"],["9089","ISOPOR E CAIXAS TERMICAS"],["9090","FOSFOROS E ACENDEDORES"],["9117","CHURRASQUEIRAS"]]},{"c":"912","n":"BRINQUEDOS","s":[["9091","JOGOS"],["9092","BRINQUEDOS GERAL"]]},{"c":"913","n":"HORTA E JARDIM","s":[["9093","ACESSORIOS DE JARDINAGEM"],["9094","ADUBOS/TERRA"],["9095","FOLHAGENS E FLORES"],["9096","MOVEIS PARA JARDIM"],["9097","VASOS E PRATOS"],["9098","SEMENTES"]]},{"c":"914","n":"VIDROS/CRISTAIS/PORCELANAS","s":[["9099","COPOS DE VIDRO"],["9100","TACAS DE VIDRO"],["9101","PRATOS VIDRO OU PORCELANA"],["9102","REFRATARIOS DE VIDRO OU PORCELANA"],["9103","ASSADEIRAS DE VIDRO"],["9104","FORMAS DE VIDRO"]]},{"c":"915","n":"VERTUARIO","s":[["9105","CHINELOS E SANDALIAS"],["9106","PANTUFAS"],["9107","BOTAS"],["9108","ROUPAS E ACESSORIOS"],["9109","MEIAS"]]},{"c":"916","n":"ACESSORIOS DE BEBE","s":[["9110","MAMADEIRAS"],["9111","CHUPETAS"],["9112","BANHEIRAS"],["9113","ROUPAS E ACESSORIOS DE BEBE"],["9114","MEIAS E SAPATINHOS DE BEBE"]]},{"c":"917","n":"ARMARINHOS","s":[["9115","AGULHAS DE COSTURA"],["9118","LINHAS DE COSTURA"]]}]},{"c":"99","n":"DESPESAS","g":[{"c":"999","n":"GERAL","s":[["9999","GERAL"]]}]}];
+const COLORS = {"10":"#B9791E","20":"#B23A3A","30":"#3F8A33","40":"#8E5F36","50":"#2A78A3","60":"#6A4BA0","70":"#1F918E","80":"#BC4F87","90":"#4A5894","99":"#6F7874"};
+const TITLE = {"MERCEARIA":"Mercearia","ACOUGUE":"Açougue","HORTIFRUTI":"Hortifrúti","FABRICACAO PROPRIA":"Fabricação própria","PERECIVEIS":"Perecíveis","BEBIDAS":"Bebidas","LIMPEZA":"Limpeza","PERFUMARIA":"Perfumaria","BAZAR":"Bazar","DESPESAS":"Despesas"};
+const nm = d => TITLE[d.n] || d.n;
+const sub = d => d.g.reduce((a,g)=>a+g.s.length,0);
+const esc = s => s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+const plural = (n,a,b) => n+" "+(n===1?a:b);
+
+document.getElementById("tG").textContent = DATA.reduce((a,d)=>a+d.g.length,0);
+document.getElementById("tS").textContent = DATA.reduce((a,d)=>a+sub(d),0);
+document.getElementById("tD").textContent = DATA.length;
+
+const signs = document.getElementById("signs"), out = document.getElementById("out");
+const q = document.getElementById("q"), sbox = document.getElementById("sbox"), allBtn = document.getElementById("all");
+let current = null, showAll = false;
+
+signs.innerHTML = DATA.map(d=>`<button class="sign" data-c="${d.c}" style="--c:${COLORS[d.c]||'#6F7874'}">
+  <span class="num">${d.c}</span><span class="nm">${esc(nm(d))}</span>
+  <span class="ct">${plural(d.g.length,"grupo","grupos")}, ${plural(sub(d),"subgrupo","subgrupos")}</span></button>`).join("");
+
+function hl(text, terms){
+  let t = esc(text);
+  if(!terms.length) return t;
+  const n = norm(text); let marks=[];
+  terms.forEach(w=>{let i=n.indexOf(w); while(i>-1){marks.push([i,i+w.length]); i=n.indexOf(w,i+1);}});
+  if(!marks.length) return t;
+  marks.sort((a,b)=>a[0]-b[0]);
+  let r="",p=0;
+  for(const [a,b] of marks){ if(a<p) continue; r+=esc(text.slice(p,a))+"<mark>"+esc(text.slice(a,b))+"</mark>"; p=b; }
+  return r+esc(text.slice(p));
+}
+
+function deptHTML(d, groups, terms){
+  const c = COLORS[d.c]||"#6F7874";
+  const ns = groups.reduce((a,g)=>a+g.s.length,0);
+  return `<section class="dept" id="d${d.c}" style="--c:${c}">
+    <div class="dhead"><span class="num">${d.c}</span><h2>${esc(nm(d))}</h2>
+    <span class="ct">${plural(groups.length,"grupo","grupos")}, ${plural(ns,"subgrupo","subgrupos")}</span></div>
+    <div class="groups">${groups.map(g=>`<article class="group">
+      <div class="ghead"><span class="gc">${g.c}</span><h3>${hl(g.n,terms)}</h3><span class="gn">${g.s.length}</span></div>
+      <ul>${g.s.map(s=>`<li><span class="sc">${s[0]}</span><span>${hl(s[1],terms)}</span></li>`).join("")}</ul>
+    </article>`).join("")}</div></section>`;
+}
+
+function render(){
+  const raw = q.value.trim();
+  sbox.classList.toggle("has", !!raw);
+  const terms = norm(raw).split(/\s+/).filter(Boolean);
+  signs.querySelectorAll(".sign").forEach(b=>b.setAttribute("aria-current", String(!terms.length && !showAll && b.dataset.c===current)));
+  if(terms.length){
+    const match = s => terms.every(w=>norm(s).includes(w));
+    let html="", hits=0, hitDeps=new Set();
+    DATA.forEach(d=>{
+      const gs=[];
+      d.g.forEach(g=>{
+        const gHit = terms.every(w=>norm(g.n+" "+g.c).includes(w));
+        const ss = gHit ? g.s : g.s.filter(s=>match(s[1]+" "+s[0]));
+        if(ss.length){ gs.push({...g,s:ss}); hits+=ss.length; }
+      });
+      if(gs.length){ hitDeps.add(d.c); html+=deptHTML(d,gs,terms); }
+    });
+    signs.classList.add("dim");
+    signs.querySelectorAll(".sign").forEach(b=>b.classList.toggle("hit",hitDeps.has(b.dataset.c)));
+    document.getElementById("hint").textContent = hits ? `${plural(hits,"subgrupo encontrado","subgrupos encontrados")} para “${raw}”.` : "";
+    out.innerHTML = hits ? html : `<div class="empty">Nada encontrado para <b>“${esc(raw)}”</b>. Tente uma palavra mais curta ou sem acento, como “frango” ou “sabao”.</div>`;
+    return;
+  }
+  signs.classList.remove("dim");
+  if(showAll){
+    document.getElementById("hint").textContent = "Mostrando todos os departamentos.";
+    out.innerHTML = DATA.map(d=>deptHTML(d,d.g,[])).join("");
+    return;
+  }
+  const d = DATA.find(x=>x.c===current);
+  document.getElementById("hint").textContent = d ? "" : "Toque em um departamento para ver seus grupos e subgrupos.";
+  out.innerHTML = d ? deptHTML(d,d.g,[]) : "";
+}
+
+signs.addEventListener("click",e=>{
+  const b = e.target.closest(".sign"); if(!b) return;
+  q.value=""; showAll=false; allBtn.setAttribute("aria-pressed","false");
+  current=b.dataset.c; history.replaceState(null,"","#d"+current); render();
+  out.scrollIntoView({block:"start"});
+});
+let t; q.addEventListener("input",()=>{clearTimeout(t); t=setTimeout(render,120);});
+document.getElementById("clr").onclick=()=>{q.value="";render();q.focus();};
+allBtn.onclick=()=>{showAll=!showAll; allBtn.setAttribute("aria-pressed",String(showAll)); q.value=""; if(showAll) history.replaceState(null,"","#tudo"); render();};
+document.getElementById("prt").onclick=()=>{
+  const prev={showAll,v:q.value}; showAll=true; q.value=""; render(); window.print();
+  showAll=prev.showAll; q.value=prev.v; render();
+};
+const h = location.hash.replace("#","");
+if(h==="tudo"){showAll=true; allBtn.setAttribute("aria-pressed","true");}
+else if(/^d\d+$/.test(h) && DATA.some(d=>"d"+d.c===h)) current=h.slice(1);
+else current=DATA[0].c;
+render();
+</script>
+</body>
+</html>
